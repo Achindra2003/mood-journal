@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mood Journal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Mood Journal</h1>
+    <p class="sub">How are you feeling right now?</p>
+
+    <form id="form">
+      <div class="moods" role="radiogroup" aria-label="Mood">
+        <label><input type="radio" name="mood" value="1"><span>1<br>&#128542;</span></label>
+        <label><input type="radio" name="mood" value="2"><span>2<br>&#128577;</span></label>
+        <label><input type="radio" name="mood" value="3" checked><span>3<br>&#128528;</span></label>
+        <label><input type="radio" name="mood" value="4"><span>4<br>&#128578;</span></label>
+        <label><input type="radio" name="mood" value="5"><span>5<br>&#128516;</span></label>
+      </div>
+      <textarea id="note" maxlength="500" placeholder="Add a note (optional)"></textarea>
+      <button type="submit">Save entry</button>
+      <p id="error" role="alert"></p>
+    </form>
+
+    <h2>Entries</h2>
+    <ul id="list"></ul>
+    <p id="empty">No entries yet.</p>
+  </main>
+  <footer>Mood Journal &middot; <a href="/health">health</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>

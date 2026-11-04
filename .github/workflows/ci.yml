@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+    branches: [main, stage]
+  pull_request:
+    branches: [main, stage]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Build Docker image
+        run: docker build -t mood-journal .
+      - name: Smoke test container
+        run: |
+          docker run -d --name mj -p 3001:3001 -e PORT=3001 mood-journal
+          for i in $(seq 1 15); do curl -fs http://localhost:3001/health && exit 0; sleep 2; done
+          docker logs mj
+          exit 1
