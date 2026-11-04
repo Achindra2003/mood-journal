@@ -4,6 +4,9 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY . .
+# SQLite file lives in the container filesystem (ephemeral on Render's free tier)
+ENV DB_PATH=/app/data/moods.db
+RUN mkdir -p /app/data && chown -R node:node /app/data
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
