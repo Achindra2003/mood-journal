@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { getDb } from './config/database.js';
+import { getPool } from './config/database.js';
 import moodsRouter from './routes/moods.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -19,7 +19,7 @@ app.use(express.static(join(__dirname, 'public')));
 app.get('/health', async (req, res) => {
   const body = { application: 'Mood Journal', uptime: Math.round(process.uptime()), timestamp: new Date().toISOString() };
   try {
-    getDb().prepare('SELECT 1').get();
+    await getPool().query('SELECT 1');
     res.status(200).json({ status: 'UP', database: 'CONNECTED', ...body });
   } catch (error) {
     console.error('Health check failed:', error.message);
@@ -28,5 +28,11 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/api/moods', moodsRouter);
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Request failed:', err.message);
+  res.status(500).json({ error: 'internal error' });
+});
 
 export default app;

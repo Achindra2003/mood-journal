@@ -1,28 +1,41 @@
-import { DatabaseSync } from 'node:sqlite';
+import pg from 'pg';
 
-let db = null;
+const { Pool } = pg;
 
-export function getDb() {
-  if (!db) {
-    db = new DatabaseSync(process.env.DB_PATH || './moods.db');
+let pool = null;
+
+function buildConfig() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not set. Point it at a Postgres database (see .env.example).');
   }
-  return db;
+  // Render's managed Postgres requires TLS; local/CI Postgres does not.
+  const isLocal = /@(localhost|127\.0\.0\.1|db)(:|\/)/.test(connectionString);
+  return { connectionString, ssl: isLocal ? false : { rejectUnauthorized: false }, max: 5 };
+}
+
+export function getPool() {
+  if (!pool) {
+    pool = new pg.Pool(buildConfig());
+  }
+  return pool;
 }
 
 export async function initDatabase() {
-  getDb().exec(`
+  await getPool().query(`
     CREATE TABLE IF NOT EXISTS moods (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       mood INTEGER NOT NULL CHECK (mood BETWEEN 1 AND 5),
       note TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
 }
 
 export async function closeDatabase() {
-  if (db) {
-    db.close();
-    db = null;
+  if (pool) {
+    const p = pool;
+    pool = null;
+    await p.end();
   }
 }
