@@ -7,6 +7,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: moods
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/moods
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,7 +30,7 @@ jobs:
         run: docker build -t mood-journal .
       - name: Smoke test container
         run: |
-          docker run -d --name mj -p 3001:3001 -e PORT=3001 mood-journal
+          docker run -d --name mj --network host -e PORT=3001 -e DATABASE_URL mood-journal
           for i in $(seq 1 15); do curl -fs http://localhost:3001/health && exit 0; sleep 2; done
           docker logs mj
           exit 1

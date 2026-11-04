@@ -1,7 +1,9 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-process.env.DB_PATH = ':memory:';
+if (!process.env.DATABASE_URL) {
+  throw new Error('Set DATABASE_URL to a Postgres database to run the API tests');
+}
 const { default: app } = await import('../app.js');
 const { initDatabase, closeDatabase } = await import('../config/database.js');
 
